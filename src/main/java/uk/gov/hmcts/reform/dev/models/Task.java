@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.dev.models;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -20,6 +21,8 @@ import lombok.Setter;
 @Table(name = "tasks")
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Task {
 
     @Id
@@ -27,15 +30,18 @@ public class Task {
     private Long id;
 
     @NotBlank
-    @Getter @Setter private String title;
+    @Column(nullable = false)
+    private String title;
 
-
-    @Getter @Setter private String description;
+    @Column
+    private String description;
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Getter @Setter private TaskStatus status;
+    @Column(nullable = false)
+    private TaskStatus status;
 
     @NotNull
-    @Getter @Setter private LocalDateTime dueDateTime;
+    @Column(nullable = false)
+    private LocalDateTime dueDateTime;
 }
