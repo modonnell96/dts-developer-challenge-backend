@@ -1,12 +1,13 @@
 package uk.gov.hmcts.reform.dev.controllers;
 
+import java.net.URI;
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.dev.models.Task;
 import uk.gov.hmcts.reform.dev.models.TaskStatus;
 import uk.gov.hmcts.reform.dev.repositories.TaskRepository;
@@ -22,29 +23,33 @@ public class TaskController {
     }
 
     @PostMapping
-    public Task createTask(@Valid @RequestBody final Task task) {
-        return taskRepository.save(task);
+    public ResponseEntity<Task> createTask(@Valid @RequestBody final Task task) {
+        Task savedTask = taskRepository.save(task);
+
+        return ResponseEntity
+            .created(URI.create("/tasks/" + savedTask.getId()))
+            .body(savedTask);
     }
 
     @GetMapping("/{id}")
-    public Task getTaskById(@PathVariable Long id) {
-        return taskRepository.findById(id)
+    public ResponseEntity<Task> getTaskById(@PathVariable final Long id) {
+        Task task = taskRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Task not found with id " + id
             ));
+
+        return ResponseEntity.ok(task);
     }
 
     @GetMapping
-    public List<Task> getAllTasks() {
-        return taskRepository.findAll();
+    public ResponseEntity<List<Task>> getAllTasks() {
+        return ResponseEntity.ok(taskRepository.findAll());
     }
 
-    ;
-
     @PostMapping("/{id}/status")
-    public String updateTaskStatus(@PathVariable("id") Long id,
-                                   @RequestParam("status") TaskStatus status) {
+    public ResponseEntity<Task> updateTaskStatus(@PathVariable final Long id,
+                                                 @RequestParam("status") final TaskStatus status) {
         Task task = taskRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
@@ -52,15 +57,21 @@ public class TaskController {
             ));
 
         task.setStatus(status);
-        taskRepository.save(task);
+        Task updatedTask = taskRepository.save(task);
 
-        return "redirect:/tasks";
+        return ResponseEntity.ok(updatedTask);
     }
 
-    @PostMapping("/{id}/delete")
-    public String deleteTaskByID(@PathVariable("id") Long id) {
-        taskRepository.deleteById(id);
-        return "redirect:/tasks";
-    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTaskById(@PathVariable final Long id) {
+        Task task = taskRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Task not found with id " + id
+            ));
 
+        taskRepository.delete(task);
+
+        return ResponseEntity.noContent().build();
+    }
 }

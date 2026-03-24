@@ -1,8 +1,7 @@
 package uk.gov.hmcts.reform.dev.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -13,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import uk.gov.hmcts.reform.dev.models.Task;
@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.dev.repositories.TaskRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class TaskControllerIntegrationTest {
 
     @Autowired
@@ -113,21 +114,22 @@ class TaskControllerIntegrationTest {
     }
 
     @Test
-    void givenTaskExists_whenDeleteTask_thenReturnOK() throws Exception {
+    void givenTaskExists_whenDeleteTask_thenReturnNoContent() throws Exception {
         Task savedTask = taskRepository.save(newTask);
 
-        mockMvc.perform(post("/tasks/{id}/delete", savedTask.getId()))
-            .andExpect(status().isOk());
+        mockMvc.perform(delete("/tasks/{id}", savedTask.getId()))
+            .andExpect(status().isNoContent());
     }
 
     @Test
-    void givenTaskExists_whenDeleteTask_thenTaskIsRemoved() throws Exception {
+    void givenTaskExists_whenDeleteTask_thenTaskIsDeleted() throws Exception {
         Task savedTask = taskRepository.save(newTask);
 
-        mockMvc.perform(post("/tasks/{id}/delete", savedTask.getId()))
-            .andExpect(status().isOk());
+        mockMvc.perform(delete("/tasks/{id}", savedTask.getId()))
+            .andExpect(status().isNoContent());
 
         assert(taskRepository.findById(savedTask.getId()).isEmpty());
+
     }
 
     @Test
